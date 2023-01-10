@@ -70,7 +70,7 @@
                 const data = await axios.post(apiURL + "admin/signin", this.userInfo);
                 const { token, expired } = data.data;
                 document.cookie = `hexToken=${token}; expires=${new Date(expired)}`;
-                location.href = "./product.html";
+                location.href = "./products.html";
               } catch(error) {
                 console.log(error.response.data)
               }
@@ -83,7 +83,7 @@
             axios.defaults.headers.common['Authorization'] = token;
             try {
               await axios.post(apiURL + "api/user/check");
-              location.href = "./product.html";
+              location.href = "./products.html";
             } catch (error) {
               console.log(error.data.message);
             }

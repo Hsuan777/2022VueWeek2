@@ -55,7 +55,7 @@
                   <button @click="openProductModal(product)" type="button" class="btn btn-outline-primary btn-sm">
                     編輯
                   </button>
-                  <button @click="openDeleteModal" type="button" class="btn btn-outline-danger btn-sm">
+                  <button @click="openDeleteModal(product)" type="button" class="btn btn-outline-danger btn-sm">
                     刪除
                   </button>
                 </div>
@@ -153,8 +153,11 @@
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                 取消
               </button>
-              <button type="button" class="btn btn-primary">
-                確認
+              <button v-if="temp.id" @click="editProduct" type="button" class="btn btn-primary">
+                修改
+              </button>
+              <button v-else @click="addProduct" type="button" class="btn btn-primary">
+                新增
               </button>
             </div>
           </div>
@@ -178,7 +181,7 @@
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                 取消
               </button>
-              <button type="button" class="btn btn-danger">
+              <button @click="delProduct" type="button" class="btn btn-danger">
                 確認刪除
               </button>
             </div>
@@ -251,9 +254,39 @@
             }
           }
         },
-        async openDeleteModal (){
+        async addProduct() {
+          try {
+            await axios.post(apiURL + "api/" + path + "/admin/product", {data: this.temp});
+            alert("新增成功");
+          } catch (error) {
+            alert("新增失敗");
+          }
+          productModal.hide();
+        },
+        async editProduct() {
+          try {
+            await axios.put(apiURL + "api/" + path + "/admin/product/" + this.temp.id, {data: this.temp});
+            alert("修改成功");
+          } catch (error) {
+            alert("修改失敗");
+          }
+          productModal.hide();
+        },
+        async delProduct() {
+          try {
+            await axios.delete(apiURL + "api/" + path + "/admin/product/" + this.temp.id);
+            alert("刪除成功");
+            this.getDataAll();
+          } catch (error) {
+            alert("刪除失敗");
+          }
+          delProductModal.hide();
+        },
+
+        async openDeleteModal (product){
           delProductModal = new bootstrap.Modal(document.getElementById("delProductModal"));
           delProductModal.show();
+          this.temp = product;
         },
         signOut (){
           document.cookie = "hexToken=''";

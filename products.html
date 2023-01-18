@@ -163,6 +163,11 @@
           </div>
         </div>
       </div>
+      <!-- DEL Modal Component -->
+      <del-product-modal ref="delProduct" :item="temp" @update="getDataAll" />
+
+    </div>
+    <script type="text/x-template" id="delProductModal">
       <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1"
            aria-labelledby="delProductModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -188,9 +193,7 @@
           </div>
         </div>
       </div>
-      <!-- Modal -->
-    </div>
-
+    </script>
     <script src="https://unpkg.com/vue@next"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
             integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
@@ -209,7 +212,8 @@
     let productModal = null;
     let delProductModal = null;
     const { createApp } = Vue;
-    const app = {
+
+    const app = createApp({
       data() {
         return {
           products: [],
@@ -281,21 +285,18 @@
           }
           productModal.hide();
         },
-        async delProduct() {
-          try {
-            await axios.delete(apiURL + "api/" + path + "/admin/product/" + this.temp.id);
-            this.getDataAll();
-            alert("刪除成功");
-          } catch (error) {
-            alert("刪除失敗");
-          }
-          delProductModal.hide();
-        },
-
         async openDeleteModal (product){
-          delProductModal = new bootstrap.Modal(document.getElementById("delProductModal"));
+          if (product.id) {
+            this.temp = JSON.parse(JSON.stringify(product));
+            if (!this.temp?.imagesUrl) {
+              this.temp.imagesUrl = [];
+            }
+          } else {
+            this.temp = {
+              imagesUrl: []
+            }
+          }
           delProductModal.show();
-          this.temp = product;
         },
         signOut (){
           document.cookie = "hexToken=''";
@@ -305,7 +306,38 @@
       mounted() {
         this.checkSignin();
       },
-    };
-    createApp(app).mount("#app");
+    });
+    // 產品刪除元件
+    app.component('delProductModal', {
+      template: '#delProductModal',
+      props: ['item'],
+      data() {
+        return {
+
+        };
+      },
+      mounted() {
+        delProductModal = new bootstrap.Modal(document.getElementById('delProductModal'));
+      },
+      methods: {
+        async delProduct() {
+          try {
+            await axios.delete(apiURL + "api/" + path + "/admin/product/" + this.item.id);
+            this.$emit('update');
+            alert("刪除成功");
+          } catch (error) {
+            alert("刪除失敗");
+          }
+          delProductModal.hide();
+        },
+        openModal() {
+          delProductModal.show();
+        },
+        hideModal() {
+          delProductModal.hide();
+        },
+      },
+    });
+    app.mount("#app");
   </script>
 </html>

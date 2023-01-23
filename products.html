@@ -65,13 +65,19 @@
         </table>
       </div>
       <!-- Modal -->
+      <product-modal ref="product" :product="temp" @update="getDataAll" />
+      <!-- DEL Modal Component -->
+      <del-product-modal ref="delProduct" :item="temp" @update="getDataAll" />
+
+    </div>
+    <script type="text/x-template" id="productModal">
       <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
            aria-hidden="true">
         <div class="modal-dialog modal-xl">
           <div class="modal-content border-0">
             <div class="modal-header bg-dark text-white">
               <h5 id="productModalLabel" class="modal-title">
-                <span v-if="temp.id">修改產品</span>
+                <span v-if="product.id">修改產品</span>
                 <span v-else>新增產品</span>
               </h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -86,12 +92,12 @@
                              placeholder="請輸入圖片連結">
                     </div>
                   </div>
-                  <button v-if="temp.imagesUrl.length < 5" @click="addImageUrl" class="btn btn-outline-primary btn-sm d-block w-100 mb-3">
+                  <button v-if="product.imagesUrl.length < 5" @click="addImageUrl" class="btn btn-outline-primary btn-sm d-block w-100 mb-3">
                     新增圖片
                   </button>
-                  <template v-for="(imageUrl, index) in temp.imagesUrl" :key="temp.imagesUrl + index">
+                  <template v-for="(imageUrl, index) in product.imagesUrl" :key="product.imagesUrl + index">
                     <img class="img-fluid" :src="imageUrl" alt="">
-                    <button @click="temp.imagesUrl.splice(index, 1)" class="btn btn-outline-danger btn-sm d-block w-100 mb-3">
+                    <button @click="product.imagesUrl.splice(index, 1)" class="btn btn-outline-danger btn-sm d-block w-100 mb-3">
                       刪除圖片
                     </button>
                   </template>
@@ -99,29 +105,29 @@
                 <div class="col-sm-8">
                   <div class="mb-3">
                     <label for="title" class="form-label">標題</label>
-                    <input v-model="temp.title" id="title" type="text" class="form-control" placeholder="請輸入標題">
+                    <input v-model="product.title" id="title" type="text" class="form-control" placeholder="請輸入標題">
                   </div>
 
                   <div class="row">
                     <div class="mb-3 col-md-6">
                       <label for="category" class="form-label">分類</label>
-                      <input v-model="temp.category" id="category" type="text" class="form-control"
+                      <input v-model="product.category" id="category" type="text" class="form-control"
                              placeholder="請輸入分類">
                     </div>
                     <div class="mb-3 col-md-6">
                       <label for="price" class="form-label">單位</label>
-                      <input v-model="temp.unit" id="unit" type="text" class="form-control" placeholder="請輸入單位">
+                      <input v-model="product.unit" id="unit" type="text" class="form-control" placeholder="請輸入單位">
                     </div>
                   </div>
 
                   <div class="row">
                     <div class="mb-3 col-md-6">
                       <label for="origin_price" class="form-label">原價</label>
-                      <input v-model="temp.origin_price" id="origin_price" type="number" min="0" class="form-control" placeholder="請輸入原價">
+                      <input v-model="product.origin_price" id="origin_price" type="number" min="0" class="form-control" placeholder="請輸入原價">
                     </div>
                     <div class="mb-3 col-md-6">
                       <label for="price" class="form-label">售價</label>
-                      <input v-model="temp.price" id="price" type="number" min="0" class="form-control"
+                      <input v-model="product.price" id="price" type="number" min="0" class="form-control"
                              placeholder="請輸入售價">
                     </div>
                   </div>
@@ -129,19 +135,19 @@
 
                   <div class="mb-3">
                     <label for="description" class="form-label">產品描述</label>
-                    <textarea v-model="temp.description" id="description" type="text" class="form-control"
+                    <textarea v-model="product.description" id="description" type="text" class="form-control"
                               placeholder="請輸入產品描述">
                     </textarea>
                   </div>
                   <div class="mb-3">
                     <label for="content" class="form-label">說明內容</label>
-                    <textarea v-model="temp.content" id="content" type="text" class="form-control"
+                    <textarea v-model="product.content" id="content" type="text" class="form-control"
                               placeholder="請輸入說明內容">
                     </textarea>
                   </div>
                   <div class="mb-3">
                     <div class="form-check">
-                      <input v-model="temp.is_enabled" id="is_enabled" class="form-check-input" type="checkbox"
+                      <input v-model="product.is_enabled" id="is_enabled" class="form-check-input" type="checkbox"
                              :true-value="1" :false-value="0">
                       <label class="form-check-label" for="is_enabled">是否啟用</label>
                     </div>
@@ -153,7 +159,7 @@
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                 取消
               </button>
-              <button v-if="temp.id" @click="editProduct" type="button" class="btn btn-primary">
+              <button v-if="product.id" @click="editProduct" type="button" class="btn btn-primary">
                 修改
               </button>
               <button v-else @click="addProduct" type="button" class="btn btn-primary">
@@ -163,10 +169,7 @@
           </div>
         </div>
       </div>
-      <!-- DEL Modal Component -->
-      <del-product-modal ref="delProduct" :item="temp" @update="getDataAll" />
-
-    </div>
+    </script>
     <script type="text/x-template" id="delProductModal">
       <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1"
            aria-labelledby="delProductModalLabel" aria-hidden="true">
@@ -237,19 +240,17 @@
           }
         },
         async checkSignin (){
-          const token = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*=\s*([^;]*).*$)|^.*$/, '$1');
+          const token = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
           axios.defaults.headers.common['Authorization'] = token;
           try {
             await axios.post(apiURL + "api/user/check");
             this.getDataAll();
           } catch (error) {
-            location.href = "./index.html";
+            // location.href = "./index.html";
             console.log(error.data.message);
           }
         },
         async openProductModal (product){
-          productModal = new bootstrap.Modal(document.getElementById("productModal"));
-          productModal.show();
           if (product.id) {
             this.temp = JSON.parse(JSON.stringify(product));
             if (!this.temp?.imagesUrl) {
@@ -260,30 +261,8 @@
               imagesUrl: []
             }
           }
-        },
-        async addProduct() {
-          try {
-            await axios.post(apiURL + "api/" + path + "/admin/product", {data: this.temp});
-            this.getDataAll();
-            alert("新增成功");
-          } catch (error) {
-            alert("新增失敗");
-          }
-          productModal.hide();
-        },
-        addImageUrl (){
-          this.temp.imagesUrl.push(this.newImageUrl);
-          this.newImageUrl = "";
-        },
-        async editProduct() {
-          try {
-            await axios.put(apiURL + "api/" + path + "/admin/product/" + this.temp.id, {data: this.temp});
-            this.getDataAll();
-            alert("修改成功");
-          } catch (error) {
-            alert("修改失敗");
-          }
-          productModal.hide();
+          console.log(productModal);
+          productModal.show();
         },
         async openDeleteModal (product){
           if (product.id) {
@@ -296,7 +275,8 @@
               imagesUrl: []
             }
           }
-          delProductModal.show();
+          console.log(delProductModal);
+          // delProductModal.show();
         },
         signOut (){
           document.cookie = "hexToken=''";
@@ -307,28 +287,73 @@
         this.checkSignin();
       },
     });
-    // 產品刪除元件
-    app.component('delProductModal', {
-      template: '#delProductModal',
-      props: ['item'],
+    // 產品新增 / 修改 modal 元件
+    app.component("productModal", {
+      template: "#productModal",
+      props: ["product"],
+      data() {
+        return {
+          newImageUrl: "",
+        };
+      },
+      mounted() {
+        productModal = new bootstrap.Modal(document.getElementById("productModal"));
+      },
+      methods: {
+        addImageUrl (){
+          this.product.imagesUrl.push(this.newImageUrl);
+          this.newImageUrl = "";
+        },
+        async addProduct() {
+          try {
+            await axios.post(apiURL + "api/" + path + "/admin/product", {data: this.product});
+            this.$emit("update");
+            alert("新增成功");
+          } catch (error) {
+            alert("新增失敗");
+          }
+          this.hideModal();
+        },
+        async editProduct() {
+          try {
+            await axios.put(apiURL + "api/" + path + "/admin/product/" + this.product.id, {data: this.product});
+            this.$emit("update");
+            alert("修改成功");
+          } catch (error) {
+            alert("修改失敗");
+          }
+          this.hideModal();
+        },
+        openModal() {
+          productModal.show();
+        },
+        hideModal() {
+          productModal.hide();
+        },
+      },
+    });
+    // 產品刪除 modal 元件
+    app.component("delProductModal", {
+      template: "#delProductModal",
+      props: ["item"],
       data() {
         return {
 
         };
       },
       mounted() {
-        delProductModal = new bootstrap.Modal(document.getElementById('delProductModal'));
+        delProductModal = new bootstrap.Modal(document.getElementById("delProductModal"));
       },
       methods: {
         async delProduct() {
           try {
             await axios.delete(apiURL + "api/" + path + "/admin/product/" + this.item.id);
-            this.$emit('update');
+            this.$emit("update");
             alert("刪除成功");
           } catch (error) {
             alert("刪除失敗");
           }
-          delProductModal.hide();
+          this.hideModal();
         },
         openModal() {
           delProductModal.show();

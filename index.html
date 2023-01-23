@@ -42,9 +42,9 @@
     </div>
 
     <script src="https://unpkg.com/vue@next"></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
-      integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
-      crossorigin='anonymous'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js"
+      integrity="sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=="
+      crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
       integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
       crossorigin="anonymous"></script>
@@ -68,29 +68,18 @@
             if ( this.userInfo.username !== "" && this.userInfo.password !== "") {
               try {
                 const data = await axios.post(apiURL + "admin/signin", this.userInfo);
-                const { token, expired } = data.data;
-                document.cookie = `hexToken=${token}; expires=${new Date(expired)}`;
-                location.href = "./products.html";
+                if (data.data.success) {
+                  const { token, expired } = data.data;
+                  document.cookie = `hexToken=${token}; expires=${new Date(expired)}`;
+                  location.href = "./products.html";
+                }
               } catch(error) {
-                console.log(error.response.data)
+                console.log(error)
               }
               this.userInfo.username = "";
               this.userInfo.password = "";
             }
           },
-          async checkSignin (){
-            const token = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*=\s*([^;]*).*$)|^.*$/, '$1');
-            axios.defaults.headers.common['Authorization'] = token;
-            try {
-              await axios.post(apiURL + "api/user/check");
-              location.href = "./products.html";
-            } catch (error) {
-              console.log(error.data.message);
-            }
-          }
-        },
-        mounted() {
-          this.checkSignin();
         },
       };
       createApp(app).mount("#app");

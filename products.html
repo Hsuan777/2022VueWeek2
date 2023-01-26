@@ -67,9 +67,9 @@
         <pagination :pages="pages" @emit-pages="getData" class="d-flex justify-content-center"></pagination>
       </div>
       <!-- Product Modal -->
-      <product-modal :product="temp" @update="getData(pages.currentPage)"></product-modal>
+      <product-modal :product="temp" @update="getData(pages.currentPage)" @close-modal="closeProductModal"></product-modal>
       <!-- Delete Product Modal -->
-      <product-del-modal :item="temp" @update="getData(pages.currentPage)"></product-del-modal>
+      <product-del-modal :item="temp" @update="getData(pages.currentPage)" @close-modal="closeDeleteProductModal"></product-del-modal>
     </div>
     <!-- pagination -->
     <script type="text/x-template" id="pagination">
@@ -175,11 +175,11 @@
                   <div class="row">
                     <div class="mb-3 col-md-6">
                       <label for="origin_price" class="form-label">原價</label>
-                      <input v-model="product.origin_price" id="origin_price" type="number" min="0" class="form-control" placeholder="請輸入原價">
+                      <input v-model.number="product.origin_price" id="origin_price" type="number" min="0" class="form-control" placeholder="請輸入原價">
                     </div>
                     <div class="mb-3 col-md-6">
                       <label for="price" class="form-label">售價</label>
-                      <input v-model="product.price" id="price" type="number" min="0" class="form-control"
+                      <input v-model.number="product.price" id="price" type="number" min="0" class="form-control"
                              placeholder="請輸入售價">
                     </div>
                   </div>
@@ -261,11 +261,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
             integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
             crossorigin="anonymous"></script>
-    <script>
+    <script type="module">
+      import pagination from "./components/pagination.js";
+      import productModal from "./components/productModal.js";
+      import deleteProductModal from "./components/deleteProductModal.js";
+
       const apiURL = "https://vue3-course-api.hexschool.io/v2/";
       const path = "vics";
-      let productModal = null;
-      let productDelModal = null;
+      let productModalDOM = null;
+      let productDelModalDOM = null;
       const { createApp } = Vue;
 
       const app = createApp({
@@ -318,7 +322,10 @@
                 imagesUrl: []
               }
             }
-            productModal.show();
+            productModalDOM.show();
+          },
+          closeProductModal() {
+            productModalDOM.hide();
           },
           async openDeleteModal (product){
             if (product.id) {
@@ -331,98 +338,28 @@
                 imagesUrl: []
               }
             }
-            productDelModal.show();
+            productDelModalDOM.show();
           },
           signOut (){
             document.cookie = "hexToken=''";
             this.checkSignin();
-          }
+          },
+          closeDeleteProductModal() {
+            productDelModalDOM.hide();
+          },
         },
         mounted() {
           this.checkSignin();
+          productModalDOM = new bootstrap.Modal(document.getElementById("productModal"));
+          productDelModalDOM = new bootstrap.Modal(document.getElementById("productDelModal"));
         },
       });
       // 分頁
-      app.component("pagination", {
-        template: "#pagination",
-        props: ["pages"],
-        methods: {
-          emitPages(item) {
-            this.$emit("emit-pages", item);
-          },
-        },
-      })
+      app.component("pagination", pagination);
       // 產品新增 / 修改 modal 元件
-      app.component("productModal", {
-        template: "#productModalTemplate",
-        props: ["product"],
-        data() {
-          return {
-            newImageUrl: "",
-          };
-        },
-        mounted() {
-          productModal = new bootstrap.Modal(document.getElementById("productModal"));
-        },
-        methods: {
-          addImageUrl (){
-            this.product.imagesUrl.push(this.newImageUrl);
-            this.newImageUrl = "";
-          },
-          async addProduct() {
-            try {
-              await axios.post(apiURL + "api/" + path + "/admin/product", {data: this.product});
-              this.$emit("update");
-              alert("新增成功");
-            } catch (error) {
-              alert("新增失敗");
-            }
-            this.hideModal();
-          },
-          async editProduct() {
-            try {
-              await axios.put(apiURL + "api/" + path + "/admin/product/" + this.product.id, {data: this.product});
-              this.$emit("update");
-              alert("修改成功");
-            } catch (error) {
-              alert("修改失敗");
-            }
-            this.hideModal();
-          },
-          openModal() {
-            productModal.show();
-          },
-          hideModal() {
-            productModal.hide();
-          },
-        },
-      });
+      app.component("productModal", productModal);
       // 產品刪除 modal 元件
-      app.component("productDelModal", {
-        template: "#productDelModalTemplate",
-        props: ["item"],
-        mounted() {
-          productDelModal = new bootstrap.Modal(document.getElementById("productDelModal"));
-        },
-        methods: {
-          async delProduct() {
-            try {
-              await axios.delete(apiURL + "api/" + path + "/admin/product/" + this.item.id);
-              this.$emit("update");
-              alert("刪除成功");
-            } catch (error) {
-              alert("刪除失敗");
-            }
-            this.hideModal();
-          },
-          openModal() {
-            productDelModal.show();
-          },
-          hideModal() {
-            productDelModal.hide();
-          },
-        },
-      });
+      app.component("productDelModal", deleteProductModal);
       app.mount("#app");
     </script>
   </body>
